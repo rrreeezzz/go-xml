@@ -20,7 +20,7 @@
       <xsd:element name="genre" type="xsd:string"/>
       <xsd:element name="price" type="xsd:float"/>
       <xsd:element name="pub_date" type="xsd:date"/>
-      <xsd:element name="first_revision_date" type="xsd:date" use="optional"/>
+      <xsd:element name="first_revision_date" type="xsd:date" nillable="true"/>
       <xsd:element name="second_revision_date" type="xsd:date" nillable="true" />
       <xsd:element name="review" type="xsd:string"/>
     </xsd:sequence>

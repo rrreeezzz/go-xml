@@ -14,7 +14,7 @@ type BookForm struct {
 	Genre              string     `xml:"urn:books genre"`
 	Price              float32    `xml:"urn:books price"`
 	Pubdate            time.Time  `xml:"urn:books pub_date"`
-	Firstrevisiondate  time.Time  `xml:"urn:books first_revision_date"`
+	Firstrevisiondate  *time.Time `xml:"urn:books first_revision_date,omitempty"`
 	Secondrevisiondate *time.Time `xml:"urn:books second_revision_date,omitempty"`
 	Review             string     `xml:"urn:books review"`
 	Name               string     `xml:"urn:books name,attr,omitempty"`
@@ -25,12 +25,12 @@ func (t *BookForm) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	var layout struct {
 		*T
 		Pubdate            *xsdDate `xml:"urn:books pub_date"`
-		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date"`
+		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date,omitempty"`
 		Secondrevisiondate *xsdDate `xml:"urn:books second_revision_date,omitempty"`
 	}
 	layout.T = (*T)(t)
 	layout.Pubdate = (*xsdDate)(&layout.T.Pubdate)
-	layout.Firstrevisiondate = (*xsdDate)(&layout.T.Firstrevisiondate)
+	layout.Firstrevisiondate = (*xsdDate)(layout.T.Firstrevisiondate)
 	layout.Secondrevisiondate = (*xsdDate)(layout.T.Secondrevisiondate)
 	return e.EncodeElement(layout, start)
 }
@@ -39,7 +39,7 @@ func (t *BookForm) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var overlay struct {
 		*T
 		Pubdate            *xsdDate `xml:"urn:books pub_date"`
-		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date"`
+		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date,omitempty"`
 		Secondrevisiondate *xsdDate `xml:"urn:books second_revision_date,omitempty"`
 	}
 	overlay.T = (*T)(t)
@@ -48,7 +48,7 @@ func (t *BookForm) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		return err
 	}
 	overlay.T.Pubdate = (time.Time)(*overlay.Pubdate)
-	overlay.T.Firstrevisiondate = (time.Time)(*overlay.Firstrevisiondate)
+	overlay.T.Firstrevisiondate = (*time.Time)(overlay.Firstrevisiondate)
 	overlay.T.Secondrevisiondate = (*time.Time)(overlay.Secondrevisiondate)
 	return nil
 }
