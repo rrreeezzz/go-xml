@@ -9,34 +9,48 @@ import (
 )
 
 type BookForm struct {
-	Author  string    `xml:"urn:books author"`
-	Title   string    `xml:"urn:books title"`
-	Genre   string    `xml:"urn:books genre"`
-	Price   float32   `xml:"urn:books price"`
-	Pubdate time.Time `xml:"urn:books pub_date"`
-	Review  string    `xml:"urn:books review"`
-	Name    string    `xml:"urn:books name,attr,omitempty"`
+	Author             string     `xml:"urn:books author"`
+	Title              string     `xml:"urn:books title"`
+	Genre              string     `xml:"urn:books genre"`
+	Price              float32    `xml:"urn:books price"`
+	Pubdate            time.Time  `xml:"urn:books pub_date"`
+	Firstrevisiondate  time.Time  `xml:"urn:books first_revision_date"`
+	Secondrevisiondate *time.Time `xml:"urn:books second_revision_date,omitempty"`
+	Review             string     `xml:"urn:books review"`
+	Name               string     `xml:"urn:books name,attr,omitempty"`
 }
 
 func (t *BookForm) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	type T BookForm
 	var layout struct {
 		*T
-		Pubdate *xsdDate `xml:"urn:books pub_date"`
+		Pubdate            *xsdDate `xml:"urn:books pub_date"`
+		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date"`
+		Secondrevisiondate *xsdDate `xml:"urn:books second_revision_date,omitempty"`
 	}
 	layout.T = (*T)(t)
 	layout.Pubdate = (*xsdDate)(&layout.T.Pubdate)
+	layout.Firstrevisiondate = (*xsdDate)(&layout.T.Firstrevisiondate)
+	layout.Secondrevisiondate = (*xsdDate)(layout.T.Secondrevisiondate)
 	return e.EncodeElement(layout, start)
 }
 func (t *BookForm) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type T BookForm
 	var overlay struct {
 		*T
-		Pubdate *xsdDate `xml:"urn:books pub_date"`
+		Pubdate            *xsdDate `xml:"urn:books pub_date"`
+		Firstrevisiondate  *xsdDate `xml:"urn:books first_revision_date"`
+		Secondrevisiondate *xsdDate `xml:"urn:books second_revision_date,omitempty"`
 	}
 	overlay.T = (*T)(t)
-	overlay.Pubdate = (*xsdDate)(&overlay.T.Pubdate)
-	return d.DecodeElement(&overlay, &start)
+	err := d.DecodeElement(&overlay, &start)
+	if err != nil {
+		return err
+	}
+	overlay.T.Pubdate = (time.Time)(*overlay.Pubdate)
+	overlay.T.Firstrevisiondate = (time.Time)(*overlay.Firstrevisiondate)
+	overlay.T.Secondrevisiondate = (*time.Time)(overlay.Secondrevisiondate)
+	return nil
 }
 
 type BooksForm struct {
@@ -49,7 +63,7 @@ func (t *xsdDate) UnmarshalText(text []byte) error {
 	return _unmarshalTime(text, (*time.Time)(t), "2006-01-02")
 }
 func (t xsdDate) MarshalText() ([]byte, error) {
-	return []byte((time.Time)(t).Format("2006-01-02")), nil
+	return _marshalTime((time.Time)(t), "2006-01-02")
 }
 func (t xsdDate) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if (time.Time)(t).IsZero() {
@@ -75,4 +89,7 @@ func _unmarshalTime(text []byte, t *time.Time, format string) (err error) {
 		*t, err = time.Parse(format+"Z07:00", s)
 	}
 	return err
+}
+func _marshalTime(t time.Time, format string) ([]byte, error) {
+	return []byte(t.Format(format + "Z07:00")), nil
 }

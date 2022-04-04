@@ -35,9 +35,13 @@ func (t *Bindata) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		B64Data *xsdBase64Binary `xml:"tns b64Data"`
 	}
 	overlay.T = (*T)(t)
-	overlay.HexData = (*xsdHexBinary)(&overlay.T.HexData)
-	overlay.B64Data = (*xsdBase64Binary)(&overlay.T.B64Data)
-	return d.DecodeElement(&overlay, &start)
+	err := d.DecodeElement(&overlay, &start)
+	if err != nil {
+		return err
+	}
+	overlay.T.HexData = ([]byte)(*overlay.HexData)
+	overlay.T.B64Data = ([]byte)(*overlay.B64Data)
+	return nil
 }
 
 type xsdBase64Binary []byte
