@@ -313,8 +313,12 @@ func ExampleUseFieldNames() {
 	// 		Published *xsdDate `xml:"http://www.example.com/ published"`
 	// 	}
 	// 	overlay.T = (*T)(t)
-	// 	overlay.Published = (*xsdDate)(&overlay.T.Published)
-	// 	return d.DecodeElement(&overlay, &start)
+	// 	err := d.DecodeElement(&overlay, &start)
+	// 	if err != nil {
+	//		return err
+	//	}
+	// 	overlay.T.Published = (time.Time)(*overlay.Published)
+	// 	return nil
 	// }
 	//
 	// type Library struct {
